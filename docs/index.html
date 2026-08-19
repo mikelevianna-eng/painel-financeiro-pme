@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Painel Financeiro · Escritório Contábil</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FAFAFA; --ink:#0F172A; --primary:#2563EB; --surface:#FFFFFF;
+  --muted:#5B6678; --faint:#8A93A3; --gray:#CBD5E1;
+  --line:rgba(15,23,42,.09); --line-soft:rgba(15,23,42,.055); --tint:rgba(37,99,235,.07);
+  --red:#DC2626; --amber:#B45309;
+  --display:"Inter Tight","Inter",system-ui,sans-serif;
+  --body:"Inter",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  --r-md:14px; --r-lg:20px;
+  --shadow-1:0 1px 2px rgba(15,23,42,.04), 0 1px 1px rgba(15,23,42,.03);
+  --shadow-2:0 12px 32px -14px rgba(15,23,42,.16), 0 2px 6px rgba(15,23,42,.04);
+}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);
+  font-size:15px;line-height:1.6;letter-spacing:-.006em;-webkit-font-smoothing:antialiased}
+.wrap{max-width:980px;margin-inline:auto;padding:56px 24px 80px}
+
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--faint);display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.eyebrow::before{content:"";width:16px;height:1px;background:var(--gray)}
+h1{font-family:var(--display);font-weight:600;letter-spacing:-.036em;line-height:1.08;
+  font-size:clamp(26px,4.4vw,38px);margin:0 0 12px}
+.lead{color:var(--muted);font-size:16px;max-width:64ch;margin:0}
+
+.filtros{position:sticky;top:0;z-index:20;background:var(--bg);
+  border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  padding:14px 0;margin:26px 0 34px;display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}
+.campo{display:flex;flex-direction:column;gap:5px;min-width:140px}
+.campo label{font-family:var(--mono);font-size:10px;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--faint)}
+.campo select{font-family:var(--body);font-size:13.5px;color:var(--ink);background:var(--surface);
+  border:1px solid var(--line);border-radius:9px;padding:8px 30px 8px 11px;cursor:pointer;appearance:none;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 24 24' fill='none' stroke='%235B6678' stroke-width='2.5'><path d='M6 9l6 6 6-6'/></svg>");
+  background-repeat:no-repeat;background-position:right 10px center}
+#limpar{font-family:var(--mono);font-size:11px;letter-spacing:.07em;text-transform:uppercase;
+  background:none;border:1px solid var(--line);color:var(--primary);border-radius:9px;
+  padding:9px 14px;cursor:pointer;height:36px}
+
+h2{font-family:var(--display);font-weight:600;font-size:22px;letter-spacing:-.028em;margin:0 0 6px}
+.sub{color:var(--muted);font-size:14px;margin:0 0 20px;max-width:68ch}
+section{margin-top:52px}
+
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);
+  padding:18px 18px 16px;box-shadow:var(--shadow-1)}
+.kpi .rot{font-family:var(--mono);font-size:10px;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--faint);display:block;margin-bottom:9px}
+.kpi .val{font-family:var(--display);font-weight:600;font-size:23px;letter-spacing:-.025em;
+  display:block;font-variant-numeric:tabular-nums}
+.kpi .sub2{font-size:11.5px;color:var(--faint);margin-top:6px;display:block}
+.neg{color:var(--red)}
+.pos{color:var(--primary)}
+
+.painel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);
+  box-shadow:var(--shadow-1);padding:22px;overflow:hidden}
+svg.g{display:block;width:100%;height:auto;overflow:visible}
+.ax{font-size:9.5px;fill:var(--faint);font-family:var(--mono)}
+.lb{font-size:10.5px;fill:var(--ink)}
+.vl{font-size:10.5px;fill:var(--ink);font-weight:600}
+.gl{stroke:var(--line);stroke-width:1}
+.zr{stroke:#C3D0C7;stroke-width:1}
+.leg{display:flex;gap:16px;font-size:11px;color:var(--muted);font-weight:500;margin-bottom:10px;flex-wrap:wrap}
+.leg i{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:5px}
+
+.achado{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--primary);
+  border-radius:var(--r-md);box-shadow:var(--shadow-1);padding:20px 22px;margin-top:16px}
+.achado.alerta{border-left-color:var(--red)}
+.achado h3{font-family:var(--display);font-size:15.5px;font-weight:600;margin:0 0 6px;letter-spacing:-.015em}
+.achado p{margin:0;color:#2C3A46;font-size:13.5px;max-width:70ch}
+
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-family:var(--mono);font-size:9.5px;font-weight:500;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--faint);padding:0 10px 10px 0;border-bottom:1px solid var(--line)}
+th.n,td.n{text-align:right}
+td{padding:10px 10px 10px 0;border-bottom:1px solid var(--line-soft)}
+tr:last-child td{border-bottom:0}
+td.n{font-variant-numeric:tabular-nums;font-weight:500}
+.pill{font-family:var(--mono);font-size:9.5px;font-weight:500;letter-spacing:.05em;
+  padding:3px 8px;border-radius:99px;white-space:nowrap}
+.pill.ok{background:var(--tint);color:var(--primary)}
+.pill.at{background:rgba(180,83,9,.09);color:var(--amber)}
+.pill.rk{background:rgba(220,38,38,.09);color:var(--red)}
+
+#status{padding:15px 19px;border:1px solid var(--line);border-left:3px solid var(--amber);
+  background:var(--surface);border-radius:var(--r-md);margin-bottom:26px;font-size:13.5px}
+#status.hide{display:none}
+#status code{font-family:var(--mono);font-size:12px;background:var(--bg);padding:1px 5px;border-radius:3px}
+
+footer{margin-top:60px;padding-top:22px;border-top:1px solid var(--line);color:var(--faint);
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;
+  display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+footer a{color:var(--primary)}
+
+@media(max-width:820px){.kpis{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.wrap{padding:0 16px 48px}.filtros{position:static}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<p class="eyebrow">Painel financeiro · escritório contábil</p>
+<h1>O mês fecha no vermelho mesmo com contrato assinado?</h1>
+<p class="lead">DRE por competência, fluxo de caixa por regime de caixa, inadimplência por
+cliente e projeção de recebíveis, atualizados ao vivo a partir da planilha de gestão.</p>
+
+<div id="status">Carregando os dados da planilha…</div>
+
+<div class="filtros" role="group" aria-label="Filtros">
+  <div class="campo"><label for="f-ano">Ano</label><select id="f-ano"><option value="">Todos</option></select></div>
+  <div class="campo"><label for="f-segmento">Segmento</label><select id="f-segmento"><option value="">Todos</option></select></div>
+  <div class="campo"><label for="f-plano">Plano</label><select id="f-plano"><option value="">Todos</option></select></div>
+  <button id="limpar" type="button">Limpar</button>
+</div>
+
+<div class="kpis" id="kpis"></div>
+
+<section>
+  <h2>1. Competência x Caixa</h2>
+  <p class="sub">A linha clara é o resultado por competência, o que foi faturado no mês. A
+  linha escura é o saldo de caixa, o que efetivamente entrou. A diferença entre elas é por
+  que o contrato assinado não garante o caixa do mês.</p>
+  <div class="painel">
+    <div class="leg"><span><i style="background:#94A3B8"></i>Resultado (competência)</span>
+    <span><i style="background:#2563EB"></i>Saldo de caixa (mês)</span></div>
+    <svg class="g" id="g-dre" viewBox="0 0 900 280"></svg>
+  </div>
+</section>
+
+<section>
+  <h2>2. Saldo de caixa acumulado</h2>
+  <p class="sub">Soma corrida do saldo mensal desde o início do período analisado.</p>
+  <div class="painel"><svg class="g" id="g-acumulado" viewBox="0 0 900 240"></svg></div>
+  <div class="achado" id="achado-caixa"></div>
+</section>
+
+<section>
+  <h2>3. Inadimplência por cliente</h2>
+  <p class="sub">Atraso médio de pagamento de cada cliente, calculado sobre os títulos já
+  pagos. É o parâmetro usado para projetar quando os títulos em aberto devem entrar.</p>
+  <div class="painel"><table>
+    <thead><tr><th>Cliente</th><th>Plano</th><th class="n">Atraso médio</th>
+    <th class="n">Em aberto</th><th>Risco</th></tr></thead>
+    <tbody id="t-inadimplencia"></tbody></table></div>
+  <div class="achado alerta" id="achado-risco"></div>
+</section>
+
+<section>
+  <h2>4. Projeção de recebíveis</h2>
+  <p class="sub">Valor em aberto que deve entrar em 30, 60 e 90 dias, considerando o atraso
+  histórico de cada cliente sobre a própria data de vencimento.</p>
+  <div class="painel"><svg class="g" id="g-projecao" viewBox="0 0 700 220"></svg></div>
+</section>
+
+<section>
+  <h2>5. Ponto de equilíbrio</h2>
+  <p class="sub">Faturamento mensal necessário para cobrir o custo fixo, considerando que
+  parte da despesa varia com a receita.</p>
+  <div class="kpis" id="kpis-pe" style="grid-template-columns:repeat(3,1fr)"></div>
+</section>
+
+<footer>
+  <span>Dados fictícios · atualizado ao carregar a página</span>
+  <span><a id="link-repo" href="#">Código e metodologia no GitHub</a></span>
+</footer>
+</div>
+
+<script>
+/* ==================================================================
+   CONFIGURAÇÃO
+   Cole os dois endereços CSV das abas publicadas na web.
+   No Sheets: Arquivo, Compartilhar, Publicar na web, escolha a aba
+   e o formato CSV.
+   ================================================================== */
+const CSV_TITULOS = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRZLbyWYnkhnlm06-ITKQej-jRRGXop0VZ7LUoKmTfwM1EM2XRS0oJHgDZSaQ3g8SZQqgQkRdHX0Xok/pub?gid=1055003981&single=true&output=csv";
+const CSV_PAGAR   = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRZLbyWYnkhnlm06-ITKQej-jRRGXop0VZ7LUoKmTfwM1EM2XRS0oJHgDZSaQ3g8SZQqgQkRdHX0Xok/pub?gid=879723887&single=true&output=csv";
+const REPO_URL = "https://github.com/mikelevianna-eng/painel-financeiro-pme";
+
+const DESPESA_VARIAVEL_PCT = 0.06;
+
+/* ---------- leitura de CSV ---------- */
+function lerCSV(t){
+  const L=[];let c="",l=[],asp=false;
+  for(let i=0;i<t.length;i++){const x=t[i];
+    if(asp){ if(x==='"'){ if(t[i+1]==='"'){c+='"';i++;} else asp=false; } else c+=x; }
+    else{ if(x==='"')asp=true;
+      else if(x===","){l.push(c);c="";}
+      else if(x==="\n"){l.push(c);L.push(l);l=[];c="";}
+      else if(x!=="\r")c+=x; }
+  }
+  if(c!==""||l.length){l.push(c);L.push(l);}
+  if(!L.length)return[];
+  const h=L.shift().map(s=>s.trim());
+  return L.filter(r=>r.length===h.length).map(r=>Object.fromEntries(h.map((k,i)=>[k,r[i]])));
+}
+function num(v){
+  if(v==null)return 0;
+  let s=String(v).trim().replace(/R\$/g,"").replace(/\s/g,"");
+  if(!s)return 0;
+  if(s.includes(".")&&s.includes(","))s=s.replace(/\./g,"");
+  s=s.replace(",",".");
+  const n=parseFloat(s);return isNaN(n)?0:n;
+}
+function dt(s){ return s ? new Date(s+"T00:00:00") : null; }
+const diffDias=(a,b)=>Math.round((a-b)/86400000);
+
+/* ---------- formatação ---------- */
+const fBRL=new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL",maximumFractionDigits:0});
+const fBRL2=new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL",minimumFractionDigits:2});
+const din=v=>(v<0?"−":"")+fBRL.format(Math.abs(v)).replace("-","");
+const din2=v=>(v<0?"−":"")+fBRL2.format(Math.abs(v)).replace("-","");
+const pc=v=>(v<0?"−":"")+Math.abs(v).toFixed(1).replace(".",",")+"%";
+const mil=v=>Math.abs(v)>=1000?(v/1000).toFixed(0)+"k":Math.round(v);
+const MES=["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
+const rmes=a=>{const p=a.split("-");return MES[+p[1]-1]+"/"+p[0].slice(2)};
+
+/* ---------- estado ---------- */
+let TITULOS=[], PAGAR=[];
+let DATA_REFERENCIA = new Date();
+const F={ano:"",segmento:"",plano:""};
+
+/* ---------- svg ---------- */
+const NS="http://www.w3.org/2000/svg";
+function e(t,a,x){const n=document.createElementNS(NS,t);for(const k in a)n.setAttribute(k,a[k]);if(x!==undefined)n.textContent=x;return n;}
+function lim(id){const s=document.getElementById(id);if(!s)return null;while(s.firstChild)s.removeChild(s.firstChild);return s;}
+function vazio(s,txt){s.appendChild(e("text",{x:"50%",y:"50%",class:"ax","text-anchor":"middle"},txt));}
+
+/* ---------- filtragem ---------- */
+function titulosFiltrados(){
+  return TITULOS.filter(r=>
+    (!F.ano || r.competencia.slice(0,4)===F.ano) &&
+    (!F.segmento || r.segmento===F.segmento) &&
+    (!F.plano || r.plano===F.plano)
+  );
+}
+function pagarFiltrado(){
+  return PAGAR.filter(r => !F.ano || r.competencia.slice(0,4)===F.ano);
+}
+
+/* ---------- DRE por competência ---------- */
+function dreMensal(titulos, pagar){
+  const receita=new Map(), despesa=new Map();
+  for(const t of titulos) receita.set(t.competencia,(receita.get(t.competencia)||0)+t.valor);
+  for(const p of pagar) despesa.set(p.competencia,(despesa.get(p.competencia)||0)+p.valor);
+  const meses=[...new Set([...receita.keys(),...despesa.keys()])].sort();
+  return meses.map(m=>{
+    const r=receita.get(m)||0, d=despesa.get(m)||0;
+    return {mes:m, receita:r, despesa:d, resultado:r-d, margem: r? (r-d)/r*100 : 0};
+  });
+}
+
+/* ---------- caixa por regime de caixa ---------- */
+function caixaMensal(titulos, pagar){
+  const entradas=new Map(), saidas=new Map();
+  for(const t of titulos){
+    if(t.status!=="Pago" || !t.data_pagamento) continue;
+    const m = t.data_pagamento.toISOString().slice(0,7);
+    entradas.set(m,(entradas.get(m)||0)+t.valor);
+  }
+  for(const p of pagar){
+    const m = p.data_vencimento.toISOString().slice(0,7);
+    saidas.set(m,(saidas.get(m)||0)+p.valor);
+  }
+  const meses=[...new Set([...entradas.keys(),...saidas.keys()])].sort();
+  let ac=0;
+  return meses.map(m=>{
+    const en=entradas.get(m)||0, sa=saidas.get(m)||0, saldo=en-sa;
+    ac+=saldo;
+    return {mes:m, entradas:en, saidas:sa, saldo, acumulado:ac};
+  });
+}
+
+/* ---------- inadimplência ---------- */
+function inadimplenciaPorCliente(titulos){
+  const m=new Map();
+  for(const t of titulos){
+    if(!m.has(t.id_cliente)) m.set(t.id_cliente, {
+      cliente:t.razao_social, plano:t.plano, atrasos:[], emAberto:0, valorAberto:0});
+    const g=m.get(t.id_cliente);
+    if(t.status==="Pago" && t.data_pagamento){
+      g.atrasos.push(diffDias(t.data_pagamento, t.data_vencimento));
+    } else if(t.status==="Em aberto"){
+      g.emAberto++; g.valorAberto+=t.valor;
+    }
+  }
+  const linhas=[...m.entries()].map(([id,g])=>{
+    const media = g.atrasos.length? g.atrasos.reduce((a,b)=>a+b,0)/g.atrasos.length : 0;
+    let risco = "Pontual";
+    if(media>30) risco="Alto risco"; else if(media>15) risco="Risco"; else if(media>5) risco="Atenção";
+    return {id, cliente:g.cliente, plano:g.plano, atrasoMedio:media,
+             emAberto:g.emAberto, valorAberto:g.valorAberto, risco};
+  });
+  return linhas.sort((a,b)=>b.atrasoMedio-a.atrasoMedio);
+}
+
+/* ---------- projeção de recebíveis ---------- */
+function projetarRecebimento(titulos, inad){
+  const atrasoPorCliente = new Map(inad.map(i=>[i.id,i.atrasoMedio]));
+  const medianaGeral = inad.length? inad.map(i=>i.atrasoMedio).sort((a,b)=>a-b)[Math.floor(inad.length/2)] : 0;
+  // A data de referencia e o fim do periodo coberto pela base, nao a
+  // data real de hoje. Usar new Date() faria a projecao contar a
+  // partir de um dia sem nenhum dado, distorcendo os buckets de 30,
+  // 60 e 90 dias.
+  const hoje = DATA_REFERENCIA;
+  const abertos = titulos.filter(t=>t.status==="Em aberto");
+
+  const resumo={30:0,60:0,90:0};
+  for(const t of abertos){
+    const atraso = atrasoPorCliente.get(t.id_cliente) ?? medianaGeral;
+    const previsao = new Date(t.data_vencimento);
+    previsao.setDate(previsao.getDate()+Math.round(atraso));
+    const dias = diffDias(previsao, hoje);
+    for(const f of [30,60,90]) if(dias<=f) resumo[f]+=t.valor;
+  }
+  return resumo;
+}
+
+/* ---------- ponto de equilíbrio ---------- */
+function pontoDeEquilibrio(dre){
+  const receitaMedia = dre.reduce((s,d)=>s+d.receita,0)/(dre.length||1);
+  const despesaMedia = dre.reduce((s,d)=>s+d.despesa,0)/(dre.length||1);
+  const custoVariavel = receitaMedia*DESPESA_VARIAVEL_PCT;
+  const custoFixo = despesaMedia-custoVariavel;
+  const equilibrio = custoFixo/(1-DESPESA_VARIAVEL_PCT);
+  return {receitaMedia, despesaMedia, custoFixo, equilibrio,
+          folga: equilibrio? (receitaMedia/equilibrio*100-100) : 0};
+}
+
+/* ---------- gráfico: DRE competência x caixa ---------- */
+function gDre(dre, caixa){
+  const s=lim("g-dre");
+  if(dre.length<2) return vazio(s,"Sem dados suficientes para o período filtrado.");
+  const Le=60,R=20,T=16,B=32,W=900,H=280,pw=W-Le-R,ph=H-T-B;
+  const meses=dre.map(d=>d.mes);
+  const caixaMap=new Map(caixa.map(c=>[c.mes,c.saldo]));
+  const vals=[...dre.map(d=>d.resultado), ...meses.map(m=>caixaMap.get(m)||0)];
+  const alto=Math.max(...vals,0), baixo=Math.min(...vals,0), span=(alto-baixo)||1;
+  const x=i=>Le+(pw/(meses.length-1||1))*i, y=v=>T+ph-((v-baixo)/span)*ph;
+
+  for(let i=0;i<=3;i++){const v=baixo+span*i/3;
+    s.appendChild(e("line",{x1:Le,x2:W-R,y1:y(v),y2:y(v),class:"gl"}));
+    s.appendChild(e("text",{x:Le-8,y:y(v)+3,class:"ax","text-anchor":"end"},"R$ "+mil(v)));
+  }
+  const camR=meses.map((m,i)=>(i?"L":"M")+x(i)+" "+y(dre[i].resultado)).join(" ");
+  const camC=meses.map((m,i)=>(i?"L":"M")+x(i)+" "+y(caixaMap.get(m)||0)).join(" ");
+  s.appendChild(e("path",{d:camR,fill:"none",stroke:"#94A3B8","stroke-width":2,"stroke-dasharray":"4 3"}));
+  s.appendChild(e("path",{d:camC,fill:"none",stroke:"#2563EB","stroke-width":2.4}));
+  if(baixo<0) s.appendChild(e("line",{x1:Le,x2:W-R,y1:y(0),y2:y(0),class:"zr"}));
+  meses.forEach((m,i)=>{
+    if(i%Math.ceil(meses.length/8)===0 || i===meses.length-1)
+      s.appendChild(e("text",{x:x(i),y:H-B+18,class:"ax","text-anchor":"middle"},rmes(m)));
+  });
+}
+
+/* ---------- gráfico: caixa acumulado ---------- */
+function gAcumulado(caixa){
+  const s=lim("g-acumulado");
+  if(caixa.length<2) return vazio(s,"Sem dados suficientes.");
+  const Le=64,R=20,T=16,B=30,W=900,H=240,pw=W-Le-R,ph=H-T-B;
+  const vals=caixa.map(c=>c.acumulado);
+  const alto=Math.max(...vals,0), baixo=Math.min(...vals,0), span=(alto-baixo)||1;
+  const x=i=>Le+(pw/(caixa.length-1||1))*i, y=v=>T+ph-((v-baixo)/span)*ph;
+
+  for(let i=0;i<=3;i++){const v=baixo+span*i/3;
+    s.appendChild(e("line",{x1:Le,x2:W-R,y1:y(v),y2:y(v),class:"gl"}));
+    s.appendChild(e("text",{x:Le-8,y:y(v)+3,class:"ax","text-anchor":"end"},"R$ "+mil(v)));
+  }
+  const d=caixa.map((c,i)=>(i?"L":"M")+x(i)+" "+y(c.acumulado)).join(" ");
+  s.appendChild(e("path",{d:d+" L"+x(caixa.length-1)+" "+y(0)+" L"+x(0)+" "+y(0)+" Z",
+    fill:"#2563EB","fill-opacity":.08}));
+  s.appendChild(e("path",{d,fill:"none",stroke:"#2563EB","stroke-width":2.2}));
+  if(baixo<0) s.appendChild(e("line",{x1:Le,x2:W-R,y1:y(0),y2:y(0),class:"zr"}));
+  caixa.forEach((c,i)=>{
+    if(i%Math.ceil(caixa.length/8)===0 || i===caixa.length-1)
+      s.appendChild(e("text",{x:x(i),y:H-B+18,class:"ax","text-anchor":"middle"},rmes(c.mes)));
+  });
+}
+
+/* ---------- gráfico: projeção de recebíveis ---------- */
+function gProjecao(resumo){
+  const s=lim("g-projecao");
+  const dados=[["30 dias",resumo[30]],["60 dias",resumo[60]],["90 dias",resumo[90]]];
+  const Le=90,R=90,T=16,B=20,W=700,H=220,pw=W-Le-R;
+  const alt=(H-T-B)/dados.length, bar=Math.min(alt*.5,34);
+  const max=Math.max(...dados.map(d=>d[1]),1);
+  dados.forEach(([rot,val],i)=>{
+    const cy=T+alt*i+alt/2, w=Math.max(val/max*pw,2);
+    s.appendChild(e("rect",{x:Le,y:cy-bar/2,width:w,height:bar,fill:"#2563EB","fill-opacity":.85,rx:4}));
+    s.appendChild(e("text",{x:Le-10,y:cy+4,class:"lb","text-anchor":"end"},rot));
+    s.appendChild(e("text",{x:Le+w+9,y:cy+4,class:"vl"},din(val)));
+  });
+}
+
+/* ---------- KPIs ---------- */
+function montarKpis(dre, caixa, inad){
+  const ultimo = dre[dre.length-1] || {receita:0,despesa:0,resultado:0,margem:0};
+  const acumuladoFinal = caixa.length? caixa[caixa.length-1].acumulado : 0;
+  const emRisco = inad.filter(i=>i.risco==="Risco"||i.risco==="Alto risco");
+  const valorEmRisco = emRisco.reduce((s,i)=>s+i.valorAberto,0);
+  const receitaTotal = dre.reduce((s,d)=>s+d.receita,0);
+
+  document.getElementById("kpis").innerHTML = [
+    ["Receita no período", din(receitaTotal), dre.length+" meses analisados"],
+    ["Resultado do último mês", din(ultimo.resultado), pc(ultimo.margem)+" de margem", ultimo.resultado<0],
+    ["Saldo de caixa acumulado", din(acumuladoFinal), "desde o início do período", acumuladoFinal<0],
+    ["Valor em risco de recebimento", din(valorEmRisco), emRisco.length+" clientes em atenção", valorEmRisco>0],
+  ].map(([rot,val,sub,neg])=>
+    '<div class="kpi"><span class="rot">'+rot+'</span><span class="val'+(neg?" neg":"")+'">'+
+    val+'</span><span class="sub2">'+sub+'</span></div>').join("");
+}
+
+function montarKpisPE(pe){
+  document.getElementById("kpis-pe").innerHTML = [
+    ["Custo fixo estimado", din(pe.custoFixo), "não varia com a receita"],
+    ["Ponto de equilíbrio", din(pe.equilibrio), "faturamento mínimo necessário"],
+    ["Folga sobre o equilíbrio", pc(pe.folga), "receita média acima do necessário", pe.folga<0],
+  ].map(([rot,val,sub,neg])=>
+    '<div class="kpi"><span class="rot">'+rot+'</span><span class="val'+(neg?" neg":"")+'">'+
+    val+'</span><span class="sub2">'+sub+'</span></div>').join("");
+}
+
+/* ---------- tabela e achados ---------- */
+function tabelaInadimplencia(inad){
+  const criticos = inad.filter(i=>i.risco!=="Pontual").slice(0,12);
+  const corpo = document.getElementById("t-inadimplencia");
+  corpo.innerHTML = criticos.length ? criticos.map(i=>{
+    const cl = i.risco==="Alto risco"?"rk":(i.risco==="Risco"?"rk":"at");
+    return "<tr><td>"+i.cliente+"</td><td>"+i.plano+'</td><td class="n">'+
+      i.atrasoMedio.toFixed(1).replace(".",",")+" dias</td><td class=\"n\">"+
+      (i.valorAberto? din2(i.valorAberto):"—")+'</td><td><span class="pill '+cl+'">'+
+      i.risco+"</span></td></tr>";
+  }).join("") : '<tr><td colspan="5" style="color:var(--faint)">Nenhum cliente fora do padrão pontual neste recorte.</td></tr>';
+}
+
+function gerarAchados(dre, caixa, inad, pe){
+  const acCaixa = document.getElementById("achado-caixa");
+  const primeiroPositivo = caixa.find(c=>c.acumulado>=0);
+  if(primeiroPositivo){
+    const idx = caixa.indexOf(primeiroPositivo);
+    acCaixa.innerHTML = "<h3>O caixa levou "+idx+" meses para virar positivo</h3><p>Do início do "+
+      "período até "+rmes(primeiroPositivo.mes)+", o acumulado ficou negativo. É típico de operação "+
+      "em crescimento, onde o custo fixo entra antes da base de clientes amadurecer, mas precisa de "+
+      "capital de giro para atravessar essa fase sem sufocar.</p>";
+  } else if(caixa.length){
+    const ultimo = caixa[caixa.length-1];
+    acCaixa.innerHTML = "<h3>O caixa acumulado "+(ultimo.acumulado<0?"segue negativo":"está positivo")+
+      "</h3><p>Saldo acumulado de "+din(ultimo.acumulado)+" até "+rmes(ultimo.mes)+".</p>";
+  }
+
+  const acRisco = document.getElementById("achado-risco");
+  const risco = inad.filter(i=>i.risco==="Risco"||i.risco==="Alto risco");
+  const valor = risco.reduce((s,i)=>s+i.valorAberto,0);
+  if(risco.length){
+    acRisco.innerHTML = "<h3>"+risco.length+" clientes concentram "+din(valor)+" em risco de recebimento"+
+      "</h3><p>São contas com atraso médio histórico acima de 15 dias. O valor em aberto delas merece "+
+      "cobrança ativa antes de virar perda, porque o padrão de atraso já é conhecido e recorrente.</p>";
+  } else {
+    acRisco.innerHTML = "<h3>Nenhum cliente em risco elevado neste recorte</h3>"+
+      "<p>A carteira filtrada não apresenta concentração relevante de atraso.</p>";
+  }
+}
+
+/* ---------- atualização geral ---------- */
+function atualizar(){
+  const titulos = titulosFiltrados();
+  const pagar = pagarFiltrado();
+
+  const dre = dreMensal(titulos, pagar);
+  const caixa = caixaMensal(titulos, pagar);
+  const inad = inadimplenciaPorCliente(titulos);
+  const resumoProj = projetarRecebimento(titulos, inad);
+  const pe = pontoDeEquilibrio(dre);
+
+  montarKpis(dre, caixa, inad);
+  montarKpisPE(pe);
+  gDre(dre, caixa);
+  gAcumulado(caixa);
+  gProjecao(resumoProj);
+  tabelaInadimplencia(inad);
+  gerarAchados(dre, caixa, inad, pe);
+}
+
+/* ---------- filtros ---------- */
+function preencherFiltro(id, valores){
+  const s=document.getElementById(id), p=s.options[0];
+  s.innerHTML=""; s.appendChild(p);
+  valores.forEach(v=>{const o=document.createElement("option");o.value=v;o.textContent=v;s.appendChild(o);});
+}
+function iniciarFiltros(){
+  const u=c=>[...new Set(TITULOS.map(r=>r[c]).filter(Boolean))].sort();
+  preencherFiltro("f-ano", [...new Set(TITULOS.map(r=>r.competencia.slice(0,4)))].sort());
+  preencherFiltro("f-segmento", u("segmento"));
+  preencherFiltro("f-plano", u("plano"));
+
+  [["f-ano","ano"],["f-segmento","segmento"],["f-plano","plano"]].forEach(([id,k])=>
+    document.getElementById(id).addEventListener("change", ev=>{F[k]=ev.target.value; atualizar();}));
+
+  document.getElementById("limpar").addEventListener("click", ()=>{
+    for(const k in F) F[k]="";
+    document.querySelectorAll(".filtros select").forEach(s=>s.value="");
+    atualizar();
+  });
+}
+
+/* ---------- carga ---------- */
+function normalizarTitulos(brutos){
+  return brutos.map(r=>({
+    id_cliente: r.id_cliente,
+    competencia: (r.competencia||"").trim(),
+    data_vencimento: dt(r.data_vencimento),
+    data_pagamento: dt(r.data_pagamento),
+    valor: num(r.valor),
+    status: (r.status||"").trim(),
+    razao_social: (r.razao_social||"").trim(),
+    segmento: (r.segmento||"").trim(),
+    plano: (r.plano||"").trim(),
+  })).filter(r=>r.competencia && r.data_vencimento);
+}
+function normalizarPagar(brutos){
+  return brutos.map(r=>({
+    categoria: (r.categoria||"").trim(),
+    competencia: (r.competencia||"").trim(),
+    data_vencimento: dt(r.data_vencimento),
+    valor: num(r.valor),
+  })).filter(r=>r.competencia && r.data_vencimento);
+}
+
+function avisar(html, ok){
+  const s=document.getElementById("status");
+  s.innerHTML=html; s.classList.remove("hide");
+  if(ok) setTimeout(()=>s.classList.add("hide"), 2200);
+}
+
+async function carregar(){
+  document.getElementById("link-repo").href = REPO_URL;
+  if(!CSV_TITULOS || CSV_TITULOS.includes("COLE_AQUI") || !CSV_PAGAR || CSV_PAGAR.includes("COLE_AQUI")){
+    avisar("<strong>Falta conectar a planilha.</strong> Localize as linhas <code>CSV_TITULOS</code> e "+
+      "<code>CSV_PAGAR</code> no início do script e cole os dois endereços gerados em Arquivo, "+
+      "Compartilhar, Publicar na web, um para a aba <code>titulos</code> e outro para "+
+      "<code>contas_pagar</code>, ambos em formato CSV.");
+    return;
+  }
+  try{
+    const [rt, rp] = await Promise.all([fetch(CSV_TITULOS), fetch(CSV_PAGAR)]);
+    if(!rt.ok || !rp.ok) throw new Error("falha ao buscar uma das planilhas");
+    TITULOS = normalizarTitulos(lerCSV(await rt.text()));
+    PAGAR = normalizarPagar(lerCSV(await rp.text()));
+    if(!TITULOS.length) throw new Error("nenhum título encontrado");
+    // referencia = o ultimo dia do mes mais recente presente na base.
+    // As datas de vencimento caem sempre no comeco do mes (dia 5, 10,
+    // 15...), entao usar a maior data bruta deixaria a projecao alguns
+    // dias curta. O fim real do periodo coberto e o fim daquele mes.
+    const maiorData = new Date(Math.max(
+      ...TITULOS.map(t=>t.data_vencimento.getTime()),
+      ...PAGAR.map(p=>p.data_vencimento.getTime())
+    ));
+    DATA_REFERENCIA = new Date(maiorData.getFullYear(), maiorData.getMonth()+1, 0);
+    iniciarFiltros();
+    atualizar();
+    avisar("Dados carregados: "+TITULOS.length+" títulos e "+PAGAR.length+" lançamentos.", true);
+  }catch(err){
+    avisar("<strong>Não foi possível ler as planilhas.</strong> Verifique se ambas foram publicadas "+
+      "em formato CSV e se os endereços estão corretos. Detalhe técnico: "+err.message+".");
+  }
+}
+carregar();
+</script>
+</body>
+</html>
